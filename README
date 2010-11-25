@@ -1,4 +1,5 @@
 To build, place in to device/htc/vision/liblights/ and run make lights.vision.
+Then place in to /system/lib/hw/ and reboot.
 
 Behavior:
 If it is plugged in, the light will stay solid (charging).  If a notification comes in with the screen off, it will blink green.  If you turn on the screen, the charging light will come on.  If you don't acknowledge the notification, when the screen turns off it will blink green again.
