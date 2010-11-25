@@ -35,7 +35,9 @@
 
 /******************************************************************************/
 static struct light_state_t *g_notify;
+static struct light_state_t g_notification;
 static struct light_state_t *g_attention;
+static struct light_state_t g_battery;
 static pthread_once_t g_init = PTHREAD_ONCE_INIT;
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -362,13 +364,13 @@ set_light_buttons(struct light_device_t* dev,
 
 static int
 set_speaker_light_locked(struct light_device_t* dev,
-        struct light_state_t const* state)
+	        struct light_state_t const* state)
 {
     int len;
     unsigned int colorRGB;
 
     /* Red = amber_led, blue or green = green_led */
-    colorRGB = state->color & 0xFFFFFF;
+    colorRGB = state->color & 0x00FF00; 
 
     switch (state->flashMode) {
         case LIGHT_FLASH_TIMED:
@@ -394,7 +396,7 @@ set_speaker_light_locked(struct light_device_t* dev,
                     break;
                     break;
                 default:
-                    LOGE("set_led_state colorRGB=%08X, unknown color\n",
+                    LOGE("set_led_state colorRGB=%08X, unknown color\n", 
                           colorRGB);
                     break;
             }
@@ -426,7 +428,7 @@ set_speaker_light_locked(struct light_device_t* dev,
                     write_int(&leds[RED_LED].brightness, 0);
                     break;
                 default:
-                    LOGE("set_led_state colorRGB=%08X, unknown color\n",
+                    LOGE("set_led_state colorRGB=%08X, unknown color\n", 
                           colorRGB);
                     break;
             }
@@ -438,14 +440,28 @@ set_speaker_light_locked(struct light_device_t* dev,
     return 0;
 }
 
+static void
+handle_speaker_light_locked(struct light_device_t* dev)
+{
+    if (is_lit(&g_battery)) {
+        set_speaker_light_locked(dev, &g_battery);
+    	if (is_lit(&g_notification)) {
+       	    set_speaker_light_locked(dev, &g_notification);
+	}
+    } else {
+        set_speaker_light_locked(dev, &g_notification);
+    }
+}
+
 static int
 set_light_battery(struct light_device_t* dev,
         struct light_state_t const* state)
 {
     pthread_mutex_lock(&g_lock);
+    g_battery = *state;
     LOGV("%s mode=%d color=0x%08x",
             __func__,state->flashMode, state->color);
-    set_speaker_light_locked(dev, state);
+    handle_speaker_light_locked(dev);
     pthread_mutex_unlock(&g_lock);
     return 0;
 }
@@ -455,6 +471,7 @@ set_light_notifications(struct light_device_t* dev,
         struct light_state_t const* state)
 {
     pthread_mutex_lock(&g_lock);
+    g_notification = *state; 
 
     LOGV("%s mode=%d color=0x%08x On=%d Off=%d\n",
             __func__,state->flashMode, state->color,
@@ -495,7 +512,7 @@ set_light_notifications(struct light_device_t* dev,
             g_notify->color = set_rgb(35, 55, 98);
             break;
         default:
-            g_notify->color = state->color;
+            g_notify->color = state->color; 
             break;
     }
 
@@ -509,7 +526,7 @@ set_light_notifications(struct light_device_t* dev,
     }
     handle_trackball_light_locked(LIGHT_NOTIFY);
 
-    set_speaker_light_locked(dev, state);
+    handle_speaker_light_locked(dev); 
 
     pthread_mutex_unlock(&g_lock);
 
