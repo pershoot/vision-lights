@@ -370,7 +370,11 @@ set_speaker_light_locked(struct light_device_t* dev,
     unsigned int colorRGB;
 
     /* Red = amber_led, blue or green = green_led */
-    colorRGB = state->color & 0x00FF00; 
+    if (is_lit(&g_notification)) {
+        colorRGB = state->color & 0x00FF00;
+    } else {
+        colorRGB = state->color & 0xFFFFFF;
+    }
 
     switch (state->flashMode) {
         case LIGHT_FLASH_TIMED:
