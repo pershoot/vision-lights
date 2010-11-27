@@ -445,13 +445,13 @@ static void
 handle_speaker_light_locked(struct light_device_t* dev,
 		struct light_state_t const* state)
 {
-    if (is_lit(g_battery)) {
-        set_speaker_light_locked(dev, g_battery);
-    	if (is_lit(g_notify)) {
-       	    set_speaker_light_locked(dev, g_notify);
+    if (is_lit(g_notify)) {
+        set_speaker_light_locked(dev, g_notify);
+    	if (is_lit(g_battery)) {
+       	    set_speaker_light_locked(dev, g_battery);
 	}
     } else {
-        set_speaker_light_locked(dev, g_notify);
+        set_speaker_light_locked(dev, g_battery);
     }
 }
 
